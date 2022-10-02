@@ -1,12 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+
 
 namespace Calculator
 {
     class ReversePolishNotation
-    {       
+    {
         static void Main(string[] args)
         {
             while (true)
@@ -15,10 +14,10 @@ namespace Calculator
                 var userInput = Console.ReadLine();
                 var calculationResult = ReversePolishNotation.Calculate(userInput);
                 Console.WriteLine(calculationResult);
+
             }
         }
 
-        //входной метод класса
         static double Calculate(string input)
         {
             string output = GetExpression(input);
@@ -34,58 +33,62 @@ namespace Calculator
 
             for (int i = 0; i < input.Length; i++)
             {
-                if (IsDelimeter(input[i]))
-                    continue;
-
-                if (Char.IsDigit(input[i]))
-                {
-                    while (!IsDelimeter(input[i]) && !IsOperator(input[i]))
+               
+                    if (Char.IsDigit(input[i]) && !IsDelimeter(input[i]))
                     {
-                        output += input[i];
-                        i++;
-
-                        if (i == input.Length) break;
-                    }
-
-                    output += " ";
-                    i--;
-                }
-
-                if (IsOperator(input[i]))
-                {
-                    if (input[i] == '(')
-                    {
-                        operStack.Push(input[i]);
-                    }
-                    else if (input[i] == ')')
-                    {
-                        char s = operStack.Pop();
-
-                        while (s != '(')
+                        while (!IsDelimeter(input[i]) && !IsOperator(input[i]))
                         {
-                            output += s.ToString() + ' ';
-                            s = operStack.Pop();
+                            output += input[i];
+                            i++;
+
+                            if (i == input.Length) break;
+                        }
+
+                        output += " ";
+                        i--;
+                    }
+
+                    else if (IsOperator(input[i]))
+                    {
+                        switch (input[i])
+                        {
+                            case '(':
+                                operStack.Push(input[i]);
+                                break;
+                            case ')':
+                                {
+                                    char s = operStack.Pop();
+
+                                    while (s != '(')
+                                    {
+                                        output += s.ToString() + ' ';
+                                        s = operStack.Pop();
+                                    }
+
+                                    break;
+                                }
+
+                            default:
+                                if (operStack.Count > 0)
+                                    if (GetPriority(input[i]) <= GetPriority(operStack.Peek()))
+                                        output += operStack.Pop().ToString() + " ";
+
+                                operStack.Push(char.Parse(input[i].ToString()));
+                                break;
                         }
                     }
-                    else
-                    {
-                        if (operStack.Count > 0)
-                            if (GetPriority(input[i]) <= GetPriority(operStack.Peek()))
-                                output += operStack.Pop().ToString() + " ";
-
-                        operStack.Push(char.Parse(input[i].ToString()));
-                    }
-                }
-
+                
             }
 
             while (operStack.Count > 0)
+            {
                 output += operStack.Pop() + " ";
+            }
 
             return output;
         }
 
-        //проверка на ввод разделителя
+       
         static bool IsDelimeter(char c)
         {
             switch (c)
@@ -96,77 +99,67 @@ namespace Calculator
                 default:
                     return false;
             }
-        }        
+        }
 
-        //проверка на ввод оператора
         static bool IsOperator(char c)
         {
             return GetPriority(c) < MAX_PRIORITY;
         }
 
         const int MAX_PRIORITY = 10;
-        static byte GetPriority(char s)
+        static byte GetPriority(char s) => s switch
         {
-            switch (s)
-            {
-                case '(': return 0;
-                case ')': return 1;
-                case '+': return 2;
-                case '-': return 3;
-                case '*': return 4;
-                case '/': return 5;
-                default: return MAX_PRIORITY;
-            }
-        }
-
-        static double Counting(string userInput)
+            '(' => 0,
+            ')' => 1,
+            '+' => 2,
+            '-' => 2,
+            '*' => 3,
+            '/' => 3,
+            _ => MAX_PRIORITY,
+        };
+        static private double Counting(string input)
         {
-            double result = 0;
-            Stack<double> stack = new Stack<double>();
+            double result = 0; 
+            Stack<double> temp = new Stack<double>(); 
 
-            string digitBuffer = string.Empty;
-            foreach (var symbol in userInput)
+            for (int i = 0; i < input.Length; i++)
             {
-                if (Char.IsDigit(symbol)) //TODO change
-                {                    
-                    while (!(IsDelimeter(symbol) || IsOperator(symbol)))
+
+                if (!Char.IsDigit(input[i]))
+                {
+                    if (IsOperator(input[i])) 
                     {
-                        digitBuffer += symbol;
-                        i++;
-                        if (i == userInput.Length) break;
+                     
+                        double a = temp.Pop();
+                        double b = temp.Pop();
+
+                        switch (input[i]) 
+                        {
+                            case '+': result = b + a; break;
+                            case '-': result = b - a; break;
+                            case '*': result = b * a; break;
+                            case '/': result = b / a; break;
+                        }
+                        temp.Push(result); 
                     }
-                    stack.Push(double.Parse(digitBuffer));
-                    digitBuffer = string.Empty;
+                }
+                else
+                {
+                    string a = string.Empty;
+
+                    while (!(IsDelimeter(input[i]) || IsOperator(input[i])))
+                    {
+                        a += input[i];
+                        i++;
+                        if (i == input.Length) break;
+                    }
+                    temp.Push(double.Parse(a)); 
                     i--;
                 }
-                else if (IsOperator(symbol))
-                {                    
-                    if (stack.Count == 1)
-                    {
-                        if (symbol == '-') stack.Push(-stack.Pop());
-                        continue;
-                    }
-                    stack.Push(ExecuteBinaryOperation(symbol, stack.Pop(), stack.Pop()));
-                }
             }
-            return stack.Peek();
+            return temp.Peek(); 
         }
-
-        static double ExecuteBinaryOperation(char symbol, double a, double b)
-        {
-            switch (symbol)
-            {
-                case '+': return b + a;
-                case '-': return b - a;
-                case '*': return b * a;
-                case '/': return b / a;
-                default:
-                    Console.WriteLine("");
-                    Environment.Exit(1);
-                    return -1;
-            }
-        }
+       
     }
 }
-
-    
+ 
