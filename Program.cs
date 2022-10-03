@@ -18,58 +18,57 @@ namespace Calculator
             }
         }
 
-        static double Calculate(string input)
+        static double Calculate(string userInput)
         {
-            string output = GetExpression(input);
+            string output = GetExpression(userInput);
             Console.WriteLine("Polish: " + output);
             double result = Counting(output);
             return result;
         }
 
-        static string GetExpression(string input) //TODO change
+        static string GetExpression(string userInput) //TODO change
         {
             string output = string.Empty;
             Stack<char> operStack = new Stack<char>();
 
-            for (int i = 0; i < input.Length; i++)
+            for (int i = 0; i < userInput.Length; i++)
             {
-                if (Char.IsDigit(input[i]) && !IsDelimeter(input[i]))
+                if (Char.IsDigit(userInput[i]) && !IsDelimeter(userInput[i]))
                 {
-                     while (!(IsDelimeter(input[i]) || IsOperator(input[i])))
+                     while (!(IsDelimeter(userInput[i]) || IsOperator(userInput[i])))
                      {
-                         output += input[i];
+                         output += userInput[i];
                          i++;
-
-                        if (i == input.Length) break;
+                         if (i == userInput.Length) break;
                      }
 
                     output += " ";
                     i--;
                 }
 
-                else if (IsOperator(input[i]))
+                else if (IsOperator(userInput[i]))
                 {
-                    switch (input[i])
+                    switch (userInput[i])
                     {
                         case '(':
-                            operStack.Push(input[i]);
+                            operStack.Push(userInput[i]);
                             break;
                         case ')':
                             {
-                                char s = operStack.Pop();
+                                char symbol = operStack.Pop();
 
-                                while (s != '(')
+                                while (symbol != '(')
                                 {
-                                    output += s.ToString() + ' ';
-                                    s = operStack.Pop();
+                                    output += symbol.ToString() + ' ';
+                                    symbol = operStack.Pop();
                                 }
                                 break;
                             }
                         default:
                             if (operStack.Count > 0)
-                                if (GetPriority(input[i]) <= GetPriority(operStack.Peek()))
+                                if (GetPriority(userInput[i]) <= GetPriority(operStack.Peek()))
                                     output += operStack.Pop().ToString() + " ";
-                            operStack.Push(char.Parse(input[i].ToString()));
+                            operStack.Push(char.Parse(userInput[i].ToString()));
                             break;
                         }
                     }
@@ -84,10 +83,9 @@ namespace Calculator
             return output;
         }
 
-       
-        static bool IsDelimeter(char c)
+        static bool IsDelimeter(char symbol)
         {
-            switch (c)
+            switch (symbol)
             {
                 case ' ':
                 case '=':
@@ -116,14 +114,14 @@ namespace Calculator
         static private double Counting(string input)
         {
             double result = 0; 
-            Stack<double> temp = new Stack<double>(); 
+            Stack<double> stack = new Stack<double>(); 
 
             for (int i = 0; i < input.Length; i++)
             {
                 if (IsOperator(input[i]) && !Char.IsDigit(input[i])) 
                 {  
-                    double a = temp.Pop();
-                    double b = temp.Pop();
+                    double a = stack.Pop();
+                    double b = stack.Pop();
 
                     switch (input[i]) 
                     {
@@ -132,24 +130,24 @@ namespace Calculator
                         case '*': result = b * a; break;
                         case '/': result = b / a; break;
                     }
-                    temp.Push(result); 
+                    stack.Push(result); 
                 }
                 
                 else if (Char.IsDigit(input[i]))
                 {
-                    string a = string.Empty;
+                    string output = string.Empty;
 
                     while (!(IsDelimeter(input[i]) || IsOperator(input[i])))
                     {
-                        a += input[i];
+                        output += input[i];
                         i++;
                         if (i == input.Length) break;
                     }
-                    temp.Push(double.Parse(a)); 
+                    stack.Push(double.Parse(output)); 
                     i--;
                 }
             }
-            return temp.Peek(); 
+            return stack.Peek(); 
         }
        
     }
