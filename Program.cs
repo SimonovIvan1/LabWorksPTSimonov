@@ -33,7 +33,7 @@ namespace Calculator
 
             for (int i = 0; i < userInput.Length; i++)
             {
-                if (Char.IsDigit(userInput[i]) && !IsDelimeter(userInput[i]))
+                if (Char.IsDigit(userInput[i]))
                 {
                      while (!(IsDelimeter(userInput[i]) || IsOperator(userInput[i])))
                      {
@@ -118,7 +118,7 @@ namespace Calculator
 
             for (int i = 0; i < input.Length; i++)
             {
-                if (IsOperator(input[i]) && !Char.IsDigit(input[i])) 
+                if (IsOperator(input[i])) 
                 {  
                     double a = stack.Pop();
                     double b = stack.Pop();
