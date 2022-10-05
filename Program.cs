@@ -12,21 +12,21 @@ namespace Calculator
             {
                 Console.Write("Введите ваше выражение: ");
                 var userInput = Console.ReadLine();
-                var calculationResult = ReversePolishNotation.Calculate(userInput);
+                var calculationResult = ReversePolishNotation.ResultPolishNotation(userInput);
                 Console.WriteLine(calculationResult);
 
             }
         }
 
-        static double Calculate(string userInput)
+        static double ResultPolishNotation(string userInput)
         {
-            string output = GetExpression(userInput);
-            Console.WriteLine("Polish: " + output);
-            double result = Counting(output);
+            string polishExpression = ConvertInPolishExpression(userInput);
+            Console.WriteLine("Polish: " + polishExpression);
+            double result = CalculationResult(polishExpression);
             return result;
         }
 
-        static string GetExpression(string userInput) //TODO change
+        static string ConvertInPolishExpression(string userInput)
         {
             string output = string.Empty;
             Stack<char> operStack = new Stack<char>();
@@ -66,7 +66,7 @@ namespace Calculator
                             }
                         default:
                             if (operStack.Count > 0)
-                                if (GetPriority(userInput[i]) <= GetPriority(operStack.Peek()))
+                                if (CheckOperatorPrecedence(userInput[i]) <= CheckOperatorPrecedence(operStack.Peek()))
                                     output += operStack.Pop().ToString() + " ";
                             operStack.Push(char.Parse(userInput[i].ToString()));
                             break;
@@ -97,11 +97,11 @@ namespace Calculator
 
         static bool IsOperator(char symbol)
         {
-            return GetPriority(symbol) < MAX_PRIORITY;
+            return CheckOperatorPrecedence(symbol) < MAX_PRIORITY;
         }
 
         const int MAX_PRIORITY = 10;
-        static byte GetPriority(char symbol) => symbol switch
+        static byte CheckOperatorPrecedence(char symbol) => symbol switch
         {
             '(' => 0,
             ')' => 1,
@@ -111,19 +111,19 @@ namespace Calculator
             '/' => 3,
             _ => MAX_PRIORITY,
         };
-        static private double Counting(string input)
+        static private double CalculationResult(string input)
         {
             double result = 0; 
             Stack<double> stack = new Stack<double>(); 
 
-            for (int i = 0; i < input.Length; i++)
+            for (int symbol = 0; symbol < input.Length; symbol++)
             {
-                if (IsOperator(input[i])) 
+                if (IsOperator(input[symbol])) 
                 {  
                     double a = stack.Pop();
                     double b = stack.Pop();
 
-                    switch (input[i]) 
+                    switch (input[symbol]) 
                     {
                         case '+': result = b + a; break;
                         case '-': result = b - a; break;
@@ -133,18 +133,18 @@ namespace Calculator
                     stack.Push(result); 
                 }
                 
-                else if (Char.IsDigit(input[i]))
+                else if (Char.IsDigit(input[symbol]))
                 {
                     string output = string.Empty;
 
-                    while (!(IsDelimeter(input[i]) || IsOperator(input[i])))
+                    while (!(IsDelimeter(input[symbol]) || IsOperator(input[symbol])))
                     {
-                        output += input[i];
-                        i++;
-                        if (i == input.Length) break;
+                        output += input[symbol];
+                        symbol++;
+                        if (symbol == input.Length) break;
                     }
                     stack.Push(double.Parse(output)); 
-                    i--;
+                    symbol--;
                 }
             }
             return stack.Peek(); 
